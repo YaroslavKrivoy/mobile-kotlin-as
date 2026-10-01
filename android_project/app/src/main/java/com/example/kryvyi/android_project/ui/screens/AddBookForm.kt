@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,30 +24,21 @@ import com.example.kryvyi.android_project.R
 
 @Composable
 fun AddBookForm(
-    onAddBook: (
-        title: String,
-        author: String,
-        description: String?,
-        isRead: Boolean
-    ) -> Unit,
+    title: String,
+    author: String,
+    description: String,
+    isRead: Boolean,
+
+    onTitleChange: (String) -> Unit,
+    onAuthorChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onReadChange: (Boolean) -> Unit,
+
+    onSave: () -> Unit,
     onCancel: () -> Unit,
+
     modifier: Modifier = Modifier
 ) {
-    var title by remember {
-        mutableStateOf("")
-    }
-
-    var author by remember {
-        mutableStateOf("")
-    }
-
-    var description by remember {
-        mutableStateOf("")
-    }
-
-    var isRead by remember {
-        mutableStateOf(false)
-    }
 
     val isFormValid =
         title.isNotBlank() &&
@@ -58,46 +50,49 @@ fun AddBookForm(
     ) {
         OutlinedTextField(
             value = title,
-            onValueChange = {
-                title = it
-            },
+            onValueChange = onTitleChange,
             label = {
                 Text(
-                    stringResource(R.string.book_title)
+                    stringResource(
+                        R.string.book_title
+                    )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
+
 
         OutlinedTextField(
             value = author,
-            onValueChange = {
-                author = it
-            },
+            onValueChange = onAuthorChange,
             label = {
                 Text(
-                    stringResource(R.string.book_author)
+                    stringResource(
+                        R.string.book_author
+                    )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
+
         OutlinedTextField(
             value = description,
-            onValueChange = {
-                description = it
-            },
+            onValueChange = onDescriptionChange,
             label = {
                 Text(
-                    stringResource(R.string.book_description)
+                    stringResource(
+                        R.string.book_description
+                    )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
             maxLines = 4
         )
+
 
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -108,10 +103,9 @@ fun AddBookForm(
 
             Checkbox(
                 checked = isRead,
-                onCheckedChange = {
-                    isRead = it
-                }
+                onCheckedChange = onReadChange
             )
+
         }
 
         Row(
@@ -126,16 +120,7 @@ fun AddBookForm(
             }
 
             Button(
-                onClick = {
-                    onAddBook(
-                        title.trim(),
-                        author.trim(),
-                        description.trim().takeIf {
-                                it.isNotEmpty()
-                            },
-                        isRead
-                    )
-                },
+                onClick = onSave,
                 enabled = isFormValid
             ) {
                 Text(

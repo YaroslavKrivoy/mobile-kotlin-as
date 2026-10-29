@@ -1,6 +1,7 @@
 package com.example.kryvyi.android_project.data
 
 import com.example.kryvyi.android_project.data.local.BookEntity
+import com.example.kryvyi.android_project.data.remote.dto.BookDto
 import com.example.kryvyi.android_project.model.Book
 
 fun BookEntity.toBook(): Book =
@@ -20,3 +21,22 @@ fun Book.toEntity(): BookEntity =
         description = description,
         isRead = isRead
     )
+
+fun BookDto.toBook(): Book {
+
+    val author = authors
+        .joinToString(separator = ", ")
+        {
+            it.name
+        }.ifBlank {
+            "Unknown author"
+        }
+
+    return Book(
+        id = id,
+        title = title,
+        author = author,
+        description = summaries.firstOrNull(),
+        isRead = false
+    )
+}

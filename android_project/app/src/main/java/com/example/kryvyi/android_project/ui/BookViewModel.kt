@@ -9,58 +9,43 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.kryvyi.android_project.BookTrackerApplication
 import com.example.kryvyi.android_project.data.BookRepository
 import com.example.kryvyi.android_project.model.Book
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-private val initialBooks = listOf(
-    Book(
-        id = 1,
-        title = "Clean Code",
-        author = "Robert C. Martin",
-        description =
-            "A handbook of agile software craftsmanship.",
-        isRead = true
-    ),
-    Book(
-        id = 2,
-        title = "Kotlin in Action",
-        author =
-            "Dmitry Jemerov, Svetlana Isakova",
-        description = null,
-        isRead = false
-    ),
-    Book(
-        id = 3,
-        title = "Refactoring",
-        author = "Martin Fowler",
-        description =
-            "Improving the design of existing code.",
-        isRead = false
-    )
-)
+import kotlinx.serialization.SerializationException
+import retrofit2.HttpException
+import java.io.IOException
 
 class BookViewModel(
     private val repository: BookRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<BookListUiState> =
-        repository
-            .observeBooks()
-            .map { books ->
+    private data class RefreshUiState(
+        val isLoading: Boolean = false,
+        val errorMessage: String? = null
+    )
 
-                BookListUiState(
-                    books = books
-                )
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = BookListUiState()
-            )
+    private val _refreshState = MutableStateFlow(RefreshUiState())
+    val uiState: StateFlow<BookListUiState> = combine(
+        repository.observeBooks(),
+        _refreshState
+    ) { books, refreshState ->
+        BookListUiState(
+            books = books,
+            isLoading = refreshState.isLoading,
+            errorMessage = refreshState.errorMessage
+        )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = BookListUiState()
+        )
 
 
     fun addBook(
@@ -109,6 +94,22 @@ class BookViewModel(
         }
     }
 
+    fun refreshBooks() {
+        viewModelScope.launch {
+            _refreshState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            try {
+                val result = repository.refreshBooks()
+
+                if (!result.isSuccess) {
+                    _refreshState.update { it.copy(errorMessage = result.errorMessage) }
+                }
+            } finally {
+                _refreshState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
     companion object {
 
         val Factory: ViewModelProvider.Factory =
@@ -125,7 +126,6 @@ class BookViewModel(
     }
 
 }
-
 
 
 

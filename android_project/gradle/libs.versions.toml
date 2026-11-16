@@ -16,6 +16,7 @@ sqlite = "2.7.1"
 ksp = "2.3.12"
 retrofit = "3.0.0"
 serializationJson = "1.12.0"
+coil = "3.6.3"
 
 
 [libraries]
@@ -44,6 +45,8 @@ androidx-sqlite-framework = { module = "androidx.sqlite:sqlite-framework", versi
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 
 [plugins]
